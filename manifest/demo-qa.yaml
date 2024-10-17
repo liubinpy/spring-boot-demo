@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app
+spec:
+  selector:
+    matchLabels:
+      app: demo-app
+  template:
+    metadata:
+      annotations:
+        prometheus_io_path: /actuator/prometheus
+        prometheus_io_port: "80"
+        prometheus_io_scrape: "true"    
+      labels:
+        app: demo-app
+        product: sandload
+    spec:
+      imagePullSecrets:
+      - name: qcloudregistrykey 
+      containers:
+      - name: demo-app
+        command: ["echo", "$(APP)"]
+        image: ccr.ccs.tencentyun.com/freemuddockernamespace/springboot-demo:v1.1
+        env:
+        - name: APP
+          value: "123"
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "1"
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myapp
+data:
+  key: value
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-app
+spec:
+  selector:
+    app: demo-app
+  ports:
+  - port: 80
+    targetPort: 80
